@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -62,12 +63,10 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
       _isProcessing = true;
     });
 
-    // Match validation: does the scanned barcode match the expected MSPN?
     if (rawValue.trim() == widget.folioItem.mspn.trim()) {
       // MATCH! Open Cotejo Sheet
       _scannerController.stop();
       
-      // Calcular la cantidad física incrementada en 1 por el escaneo
       final newPhysicalCount = widget.folioItem.physicalQty + 1;
       
       showModalBottomSheet(
@@ -83,15 +82,15 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
               SnackBar(
                 content: Text(
                   'Conteo guardado exitosamente.',
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.inter(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
-                backgroundColor: Colors.green,
+                backgroundColor: const Color(0xFF34C759), // iOS System Green
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
             );
@@ -104,26 +103,25 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
         });
       });
     } else {
-      // NO MATCH! Show warning
+      // NO MATCH! Show iOS Red SnackBar warning
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             'Código no coincide con MSPN: $rawValue',
-            style: GoogleFonts.plusJakartaSans(
+            style: GoogleFonts.inter(
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
-          backgroundColor: Colors.redAccent.shade700,
+          backgroundColor: const Color(0xFFFF3B30), // iOS System Red
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 2),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
           ),
         ),
       );
 
-      // Brief delay to prevent continuous invalid scans triggering toast spam
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
           setState(() {
@@ -140,13 +138,13 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // 1. Camera view
+          // 1. Camera View
           MobileScanner(
             controller: _scannerController,
             onDetect: _onDetect,
           ),
 
-          // 2. Custom laser scanner overlay
+          // 2. Scan laser line animation overlay
           AnimatedBuilder(
             animation: _scanLineAnimation,
             builder: (context, child) {
@@ -154,13 +152,13 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
                 size: Size.infinite,
                 painter: ScannerOverlayPainter(
                   scanLinePosition: _scanLineAnimation.value,
-                  scanAreaSize: 260.0,
+                  scanAreaSize: 250.0,
                 ),
               );
             },
           ),
 
-          // 3. Expected item header card (Slate neutral mode styled top card)
+          // 3. Apple Frosted Glass Top Cards
           Positioned(
             top: MediaQuery.of(context).padding.top + 12,
             left: 16,
@@ -168,24 +166,24 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Nav bar
+                // Top control bar
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildCircularButton(
-                      icon: Icons.arrow_back,
+                    _buildCircularIOSButton(
+                      icon: Icons.arrow_back_ios_new,
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                     Text(
                       'ESCANEAR PRODUCTO',
-                      style: GoogleFonts.plusJakartaSans(
+                      style: GoogleFonts.inter(
                         color: Colors.white,
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 1.5,
+                        letterSpacing: 1.0,
                       ),
                     ),
-                    _buildCircularButton(
+                    _buildCircularIOSButton(
                       icon: _isTorchOn ? Icons.flash_on : Icons.flash_off,
                       onPressed: () {
                         _scannerController.toggleTorch();
@@ -193,22 +191,95 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
                           _isTorchOn = !_isTorchOn;
                         });
                       },
-                      color: _isTorchOn ? Colors.amber.withOpacity(0.3) : null,
                       iconColor: _isTorchOn ? Colors.amber : Colors.white,
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
 
-                // Target Product Info Card
-                Container(
-                  padding: const EdgeInsets.all(16),
+                // Frosted Glass expected item info card
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.45),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF007AFF).withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(
+                              Icons.qr_code_2,
+                              color: Color(0xFF007AFF),
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'ESPERADO (MSPN: ${widget.folioItem.mspn})',
+                                  style: GoogleFonts.inter(
+                                    color: const Color(0xFF007AFF),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  widget.folioItem.description,
+                                  style: GoogleFonts.inter(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // 4. Instructions bottom card (translucent iOS style)
+          Positioned(
+            bottom: 40,
+            left: 24,
+            right: 24,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 18),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B).withOpacity(0.9), // Slate 800 translucid
-                    borderRadius: BorderRadius.circular(20),
+                    color: Colors.black.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: const Color(0xFF4F46E5).withOpacity(0.4),
-                      width: 1.5,
+                      color: Colors.white.withOpacity(0.15),
+                      width: 0.8,
                     ),
                   ),
                   child: Row(
@@ -216,90 +287,29 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF4F46E5).withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(10),
+                          color: Colors.white.withOpacity(0.1),
+                          shape: BoxShape.circle,
                         ),
                         child: const Icon(
-                          Icons.qr_code,
-                          color: Color(0xFF818CF8),
-                          size: 20,
+                          Icons.camera_alt,
+                          color: Colors.white,
+                          size: 16,
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'ESPERADO (MSPN: ${widget.folioItem.mspn})',
-                              style: GoogleFonts.plusJakartaSans(
-                                color: const Color(0xFF818CF8),
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.0,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              widget.folioItem.description,
-                              style: GoogleFonts.plusJakartaSans(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
+                        child: Text(
+                          'Apunta la cámara al código de barras del producto',
+                          style: GoogleFonts.inter(
+                            color: Colors.white70,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
-            ),
-          ),
-
-          // 4. Instructions bottom card
-          Positioned(
-            bottom: 40,
-            left: 24,
-            right: 24,
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E293B).withOpacity(0.9),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.1),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.camera_alt_outlined,
-                      color: Colors.white70,
-                      size: 18,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Escanea el código de barras del producto para hacer match',
-                      style: GoogleFonts.plusJakartaSans(
-                        color: Colors.white70,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
               ),
             ),
           ),
@@ -308,32 +318,38 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
     );
   }
 
-  Widget _buildCircularButton({
+  Widget _buildCircularIOSButton({
     required IconData icon,
     required VoidCallback onPressed,
-    Color? color,
     Color iconColor = Colors.white,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(50),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(50),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          width: 44,
-          height: 44,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
-            color: color ?? Colors.black.withOpacity(0.5),
+            color: Colors.white.withOpacity(0.15),
             shape: BoxShape.circle,
             border: Border.all(
-              color: Colors.white.withOpacity(0.15),
-              width: 1.2,
+              color: Colors.white.withOpacity(0.2),
+              width: 0.8,
             ),
           ),
-          child: Icon(
-            icon,
-            color: iconColor,
-            size: 18,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onPressed,
+              child: Center(
+                child: Icon(
+                  icon,
+                  color: iconColor,
+                  size: 16,
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -359,18 +375,18 @@ class ScannerOverlayPainter extends CustomPainter {
     final double top = (screenHeight - scanAreaSize) / 2;
     final Rect scanRect = Rect.fromLTWH(left, top, scanAreaSize, scanAreaSize);
 
-    final Paint maskPaint = Paint()..color = Colors.black.withOpacity(0.65);
+    final Paint maskPaint = Paint()..color = Colors.black.withOpacity(0.6);
     canvas.drawPath(
       Path.combine(PathOperation.difference, Path()..addRect(Rect.fromLTWH(0, 0, screenWidth, screenHeight)), Path()..addRect(scanRect)),
       maskPaint,
     );
 
     final Paint borderPaint = Paint()
-      ..color = const Color(0xFF4F46E5)
-      ..strokeWidth = 3.5
+      ..color = const Color(0xFF007AFF) // Apple Blue neon corners
+      ..strokeWidth = 3.0
       ..style = PaintingStyle.stroke;
 
-    const double cornerLength = 30.0;
+    const double cornerLength = 24.0;
 
     // Top Left Corner
     canvas.drawPath(
@@ -409,8 +425,8 @@ class ScannerOverlayPainter extends CustomPainter {
     );
 
     final Paint innerBorderPaint = Paint()
-      ..color = Colors.white.withOpacity(0.25)
-      ..strokeWidth = 1.0
+      ..color = Colors.white.withOpacity(0.2)
+      ..strokeWidth = 0.8
       ..style = PaintingStyle.stroke;
     canvas.drawRect(scanRect, innerBorderPaint);
 
@@ -418,23 +434,23 @@ class ScannerOverlayPainter extends CustomPainter {
     final Paint laserPaint = Paint()
       ..shader = LinearGradient(
         colors: [
-          const Color(0xFF4F46E5).withOpacity(0.0),
-          const Color(0xFF818CF8),
-          const Color(0xFF4F46E5).withOpacity(0.0),
+          const Color(0xFF007AFF).withOpacity(0.0),
+          Colors.white.withOpacity(0.8),
+          const Color(0xFF007AFF).withOpacity(0.0),
         ],
         stops: const [0.0, 0.5, 1.0],
-      ).createShader(Rect.fromLTRB(scanRect.left, lineY - 2, scanRect.right, lineY + 2));
+      ).createShader(Rect.fromLTRB(scanRect.left, lineY - 1.5, scanRect.right, lineY + 1.5));
 
     canvas.drawRect(
-      Rect.fromLTRB(scanRect.left + 4, lineY - 2, scanRect.right - 4, lineY + 2),
+      Rect.fromLTRB(scanRect.left + 4, lineY - 1.5, scanRect.right - 4, lineY + 1.5),
       laserPaint,
     );
 
     final Paint glowPaint = Paint()
-      ..color = const Color(0xFF818CF8).withOpacity(0.15)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+      ..color = const Color(0xFF007AFF).withOpacity(0.1)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
     canvas.drawRect(
-      Rect.fromLTRB(scanRect.left + 8, lineY - 6, scanRect.right - 8, lineY + 6),
+      Rect.fromLTRB(scanRect.left + 8, lineY - 4, scanRect.right - 8, lineY + 4),
       glowPaint,
     );
   }

@@ -18,7 +18,7 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   void initState() {
     super.initState();
-    // Auto-focus the search field so the keyboard opens immediately
+    // Focus the text field immediately to open the keyboard
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
     });
@@ -61,70 +61,64 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9), // Neutral Slate 100 background
+      backgroundColor: const Color(0xFFF2F2F7), // Apple System Gray 6
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 28.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Premium logo / title
+                // Brand logo icon
                 Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF4F46E5).withOpacity(0.08), // Indigo soft background
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.qr_code_scanner,
-                      color: Color(0xFF4F46E5), // Indigo primary
-                      size: 40,
-                    ),
+                  child: Image.asset(
+                    'icon.png',
+                    width: 100,
+                    height: 100,
+                    fit: BoxFit.contain,
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 14),
                 Text(
                   'MULTILLANTAS NIETO',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
                     fontWeight: FontWeight.w800,
-                    color: const Color(0xFF4F46E5),
-                    letterSpacing: 1.5,
+                    color: const Color(0xFF8E8E93), // Apple System Gray
+                    letterSpacing: 1.2,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
                   'Control de Existencias',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 22,
+                  style: GoogleFonts.inter(
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1E293B), // Slate 800
+                    color: Colors.black,
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 28),
 
-                // Glassmorphism card (Neutral style)
+                // Apple Grouped Inset Card
                 Container(
-                  padding: const EdgeInsets.all(28),
+                  padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(28),
+                    borderRadius: BorderRadius.circular(14), // Apple rounded corner style
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
+                        color: Colors.black.withOpacity(0.02),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                     border: Border.all(
-                      color: const Color(0xFFE2E8F0), // Slate 200
-                      width: 1,
+                      color: const Color(0xFFE5E5EA), // Apple System Gray 4
+                      width: 0.8,
                     ),
                   ),
                   child: Column(
@@ -132,79 +126,83 @@ class _SearchScreenState extends State<SearchScreen> {
                     children: [
                       Text(
                         'Ingrese Referencia - Folio',
-                        style: GoogleFonts.plusJakartaSans(
+                        style: GoogleFonts.inter(
                           fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF475569), // Slate 600
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
+                      
+                      // iOS Cupertino-like Text Field
                       TextField(
                         controller: _controller,
                         focusNode: _focusNode,
                         maxLength: 15,
                         keyboardType: TextInputType.number,
                         textCapitalization: TextCapitalization.characters,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 16,
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF1E293B),
+                          color: Colors.black,
                         ),
                         decoration: InputDecoration(
                           hintText: 'Ej. 98000',
-                          hintStyle: GoogleFonts.plusJakartaSans(
-                            color: const Color(0xFF94A3B8), // Slate 400
+                          hintStyle: GoogleFonts.inter(
+                            color: const Color(0xFFC7C7CC), // Apple System Gray 5 hint
                           ),
-                          counterText: '', // Hide default counter
+                          counterText: '',
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 16,
+                            horizontal: 14,
+                            vertical: 14,
                           ),
                           filled: true,
-                          fillColor: const Color(0xFFF8FAFC), // Slate 50
+                          fillColor: const Color(0xFFF2F2F7), // System Gray 6 internal fill
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(10),
                             borderSide: const BorderSide(
-                              color: Color(0xFFE2E8F0), // Slate 200
+                              color: Color(0xFFE5E5EA),
+                              width: 0.8,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(10),
                             borderSide: const BorderSide(
-                              color: Color(0xFF4F46E5), // Indigo focused border
-                              width: 1.8,
+                              color: Color(0xFF007AFF), // Apple Blue focused
+                              width: 1.5,
                             ),
                           ),
                         ),
                         onSubmitted: (_) => _searchReference(),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 20),
 
-                      // Error message container (Dynamic inline)
+                      // iOS style Notification Banner
                       if (_errorMessage != null) ...[
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                           decoration: BoxDecoration(
-                            color: Colors.red.shade50,
-                            borderRadius: BorderRadius.circular(16),
+                            color: const Color(0xFFFFE5E5), // iOS Soft Red
+                            borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: Colors.red.shade200,
+                              color: const Color(0xFFFFB3B3),
+                              width: 0.8,
                             ),
                           ),
                           child: Row(
                             children: [
-                              Icon(
-                                Icons.error_outline,
-                                color: Colors.red.shade700,
-                                size: 20,
+                              const Icon(
+                                Icons.error,
+                                color: Color(0xFFFF3B30), // iOS System Red
+                                size: 18,
                               ),
-                              const SizedBox(width: 10),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   _errorMessage!,
-                                  style: GoogleFonts.plusJakartaSans(
-                                    color: Colors.red.shade700,
-                                    fontSize: 13,
+                                  style: GoogleFonts.inter(
+                                    color: const Color(0xFFFF3B30),
+                                    fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -212,24 +210,24 @@ class _SearchScreenState extends State<SearchScreen> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 16),
                       ],
 
-                      // Buscar button
+                      // iOS Flat Filled Primary Button
                       ElevatedButton(
                         onPressed: _searchReference,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4F46E5),
+                          backgroundColor: const Color(0xFF007AFF), // Apple Standard Blue
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(10), // Clean rounded rectangle
                           ),
                           elevation: 0,
                         ),
                         child: Text(
                           'Buscar',
-                          style: GoogleFonts.plusJakartaSans(
+                          style: GoogleFonts.inter(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                           ),
@@ -242,9 +240,9 @@ class _SearchScreenState extends State<SearchScreen> {
                 Text(
                   'QA Folios disponibles: 98000, 999',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.plusJakartaSans(
+                  style: GoogleFonts.inter(
                     fontSize: 11,
-                    color: const Color(0xFF94A3B8),
+                    color: const Color(0xFF8E8E93),
                     fontWeight: FontWeight.w500,
                   ),
                 ),

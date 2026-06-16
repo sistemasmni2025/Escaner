@@ -5,7 +5,7 @@ import 'screens/search_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  // Ocultar la barra de estado y los botones del sistema (modo inmersivo de pantalla completa)
+  // Hide status bar and system navigation buttons for full screen immersion
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   runApp(const MyApp());
 }
@@ -21,18 +21,18 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.light,
-        scaffoldBackgroundColor: const Color(0xFFF1F5F9), // Neutral light slate background
+        scaffoldBackgroundColor: const Color(0xFFF2F2F7), // Apple System Gray 6 (Neutral background)
         colorScheme: const ColorScheme.light(
-          primary: Color(0xFF4F46E5), // Indigo primary
-          secondary: Color(0xFF3B82F6), // Blue secondary
+          primary: Color(0xFF007AFF), // Apple Standard Blue
+          secondary: Color(0xFF5856D6), // Apple Purple
           surface: Colors.white,
-          background: Color(0xFFF1F5F9),
+          background: Color(0xFFF2F2F7),
           onPrimary: Colors.white,
           onSecondary: Colors.white,
-          onSurface: Color(0xFF1E293B), // Slate 800 dark text
-          onBackground: Color(0xFF1E293B),
+          onSurface: Colors.black, // Pure black titles
+          onBackground: Colors.black,
         ),
-        textTheme: GoogleFonts.plusJakartaSansTextTheme(
+        textTheme: GoogleFonts.interTextTheme(
           ThemeData.light().textTheme,
         ),
       ),
