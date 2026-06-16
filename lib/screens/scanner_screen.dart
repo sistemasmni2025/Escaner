@@ -5,10 +5,12 @@ import '../mock_db.dart';
 import '../widgets/cotejo_sheet.dart';
 
 class ScannerScreen extends StatefulWidget {
-  final Function(Product product, int physicalCount) onSaveCount;
+  final FolioItem folioItem;
+  final VoidCallback onSaveCount;
 
   const ScannerScreen({
     super.key,
+    required this.folioItem,
     required this.onSaveCount,
   });
 
@@ -60,27 +62,33 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
       _isProcessing = true;
     });
 
-    final Product? product = MockDatabase.findBySku(rawValue);
-
-    if (product != null) {
-      // Product found! Show premium Cotejo Sheet
-      _scannerController.stop(); // Optional: pause camera feed
+    // Match validation: does the scanned barcode match the expected MSPN?
+    if (rawValue.trim() == widget.folioItem.mspn.trim()) {
+      // MATCH! Open Cotejo Sheet
+      _scannerController.stop();
+      
+      // Calcular la cantidad física incrementada en 1 por el escaneo
+      final newPhysicalCount = widget.folioItem.physicalQty + 1;
       
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
         builder: (context) => CotejoSheet(
-          product: product,
-          onSave: (physicalCount) {
-            widget.onSaveCount(product, physicalCount);
+          folioItem: widget.folioItem,
+          physicalCount: newPhysicalCount,
+          onSave: () {
+            widget.onSaveCount();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  'Conteo guardado para: ${product.name}',
-                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+                  'Conteo guardado exitosamente.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-                backgroundColor: const Color(0xFF6366F1),
+                backgroundColor: Colors.green,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -90,19 +98,21 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
           },
         ),
       ).then((_) {
-        // Resume scanning when modal closes
         _scannerController.start();
         setState(() {
           _isProcessing = false;
         });
       });
     } else {
-      // Product not found, show elegant notification
+      // NO MATCH! Show warning
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Código no registrado: $rawValue',
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+            'Código no coincide con MSPN: $rawValue',
+            style: GoogleFonts.plusJakartaSans(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
           backgroundColor: Colors.redAccent.shade700,
           behavior: SnackBarBehavior.floating,
@@ -112,8 +122,8 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
           ),
         ),
       );
-      
-      // Delay slightly before allowing another scan to avoid spam
+
+      // Brief delay to prevent continuous invalid scans triggering toast spam
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
           setState(() {
@@ -130,13 +140,13 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // 1. Camera View
+          // 1. Camera view
           MobileScanner(
             controller: _scannerController,
             onDetect: _onDetect,
           ),
 
-          // 2. Custom Tech Design Overlay
+          // 2. Custom laser scanner overlay
           AnimatedBuilder(
             animation: _scanLineAnimation,
             builder: (context, child) {
@@ -150,55 +160,116 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
             },
           ),
 
-          // 3. UI Controls Overlay (Top)
+          // 3. Expected item header card (Slate neutral mode styled top card)
           Positioned(
             top: MediaQuery.of(context).padding.top + 12,
-            left: 20,
-            right: 20,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            left: 16,
+            right: 16,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Back button
-                _buildCircularButton(
-                  icon: Icons.arrow_back,
-                  onPressed: () => Navigator.of(context).pop(),
+                // Nav bar
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildCircularButton(
+                      icon: Icons.arrow_back,
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    Text(
+                      'ESCANEAR PRODUCTO',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    _buildCircularButton(
+                      icon: _isTorchOn ? Icons.flash_on : Icons.flash_off,
+                      onPressed: () {
+                        _scannerController.toggleTorch();
+                        setState(() {
+                          _isTorchOn = !_isTorchOn;
+                        });
+                      },
+                      color: _isTorchOn ? Colors.amber.withOpacity(0.3) : null,
+                      iconColor: _isTorchOn ? Colors.amber : Colors.white,
+                    ),
+                  ],
                 ),
-                // Screen Title
-                Text(
-                  'ESCANEO DE PRODUCTO',
-                  style: GoogleFonts.plusJakartaSans(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.5,
+                const SizedBox(height: 12),
+
+                // Target Product Info Card
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B).withOpacity(0.9), // Slate 800 translucid
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFF4F46E5).withOpacity(0.4),
+                      width: 1.5,
+                    ),
                   ),
-                ),
-                // Flash button
-                _buildCircularButton(
-                  icon: _isTorchOn ? Icons.flash_on : Icons.flash_off,
-                  onPressed: () {
-                    _scannerController.toggleTorch();
-                    setState(() {
-                      _isTorchOn = !_isTorchOn;
-                    });
-                  },
-                  color: _isTorchOn ? Colors.amber.withOpacity(0.3) : null,
-                  iconColor: _isTorchOn ? Colors.amber : Colors.white,
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF4F46E5).withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.qr_code,
+                          color: Color(0xFF818CF8),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'ESPERADO (MSPN: ${widget.folioItem.mspn})',
+                              style: GoogleFonts.plusJakartaSans(
+                                color: const Color(0xFF818CF8),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              widget.folioItem.description,
+                              style: GoogleFonts.plusJakartaSans(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
 
-          // 4. Instructions Card (Bottom)
+          // 4. Instructions bottom card
           Positioned(
             bottom: 40,
             left: 24,
             right: 24,
             child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E1E2F).withOpacity(0.85),
-                borderRadius: BorderRadius.circular(24),
+                color: const Color(0xFF1E293B).withOpacity(0.9),
+                borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: Colors.white.withOpacity(0.1),
                 ),
@@ -206,39 +277,26 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF6366F1).withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(14),
+                      color: Colors.white.withOpacity(0.1),
+                      shape: BoxShape.circle,
                     ),
                     child: const Icon(
-                      Icons.qr_code_scanner,
-                      color: Color(0xFF818CF8),
-                      size: 22,
+                      Icons.camera_alt_outlined,
+                      color: Colors.white70,
+                      size: 18,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Apunta al código',
-                          style: GoogleFonts.plusJakartaSans(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Posiciona el código de barras o QR dentro de la retícula',
-                          style: GoogleFonts.plusJakartaSans(
-                            color: Colors.white54,
-                            fontSize: 11,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      'Escanea el código de barras del producto para hacer match',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white70,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],
@@ -262,8 +320,8 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
         onTap: onPressed,
         borderRadius: BorderRadius.circular(50),
         child: Container(
-          width: 48,
-          height: 48,
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
             color: color ?? Colors.black.withOpacity(0.5),
             shape: BoxShape.circle,
@@ -275,7 +333,7 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
           child: Icon(
             icon,
             color: iconColor,
-            size: 20,
+            size: 18,
           ),
         ),
       ),
@@ -283,7 +341,6 @@ class _ScannerScreenState extends State<ScannerScreen> with SingleTickerProvider
   }
 }
 
-// Custom Painter to draw target frame, blur outside, and moving laser line
 class ScannerOverlayPainter extends CustomPainter {
   final double scanLinePosition;
   final double scanAreaSize;
@@ -298,30 +355,24 @@ class ScannerOverlayPainter extends CustomPainter {
     final double screenWidth = size.width;
     final double screenHeight = size.height;
 
-    // Calculate bounding rect of the scan area (centered)
     final double left = (screenWidth - scanAreaSize) / 2;
     final double top = (screenHeight - scanAreaSize) / 2;
     final Rect scanRect = Rect.fromLTWH(left, top, scanAreaSize, scanAreaSize);
 
-    // 1. Draw darker background outside of scan area
     final Paint maskPaint = Paint()..color = Colors.black.withOpacity(0.65);
-    final Path maskPath = Path()
-      ..addRect(Rect.fromLTWH(0, 0, screenWidth, screenHeight))
-      ..addRect(scanRect);
     canvas.drawPath(
       Path.combine(PathOperation.difference, Path()..addRect(Rect.fromLTWH(0, 0, screenWidth, screenHeight)), Path()..addRect(scanRect)),
       maskPaint,
     );
 
-    // 2. Draw modern Tech Grid Borders around Scan Area
     final Paint borderPaint = Paint()
-      ..color = const Color(0xFF6366F1)
+      ..color = const Color(0xFF4F46E5)
       ..strokeWidth = 3.5
       ..style = PaintingStyle.stroke;
 
     const double cornerLength = 30.0;
 
-    // Bottom Left Corner
+    // Top Left Corner
     canvas.drawPath(
       Path()
         ..moveTo(scanRect.left, scanRect.top + cornerLength)
@@ -357,21 +408,19 @@ class ScannerOverlayPainter extends CustomPainter {
       borderPaint,
     );
 
-    // Draw a thin inner border
     final Paint innerBorderPaint = Paint()
       ..color = Colors.white.withOpacity(0.25)
       ..strokeWidth = 1.0
       ..style = PaintingStyle.stroke;
     canvas.drawRect(scanRect, innerBorderPaint);
 
-    // 3. Draw scanning laser line
     final double lineY = scanRect.top + (scanRect.height * scanLinePosition);
     final Paint laserPaint = Paint()
       ..shader = LinearGradient(
         colors: [
-          const Color(0xFF6366F1).withOpacity(0.0),
+          const Color(0xFF4F46E5).withOpacity(0.0),
           const Color(0xFF818CF8),
-          const Color(0xFF6366F1).withOpacity(0.0),
+          const Color(0xFF4F46E5).withOpacity(0.0),
         ],
         stops: const [0.0, 0.5, 1.0],
       ).createShader(Rect.fromLTRB(scanRect.left, lineY - 2, scanRect.right, lineY + 2));
@@ -381,7 +430,6 @@ class ScannerOverlayPainter extends CustomPainter {
       laserPaint,
     );
 
-    // Laser glow overlay
     final Paint glowPaint = Paint()
       ..color = const Color(0xFF818CF8).withOpacity(0.15)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);

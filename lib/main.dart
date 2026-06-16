@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'screens/dashboard_screen.dart';
+import 'screens/search_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  // Ocultar la barra de estado y los botones del sistema (modo inmersivo)
+  // Ocultar la barra de estado y los botones del sistema (modo inmersivo de pantalla completa)
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   runApp(const MyApp());
 }
@@ -20,23 +20,23 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0F0F1A),
-        colorScheme: ColorScheme.dark(
-          primary: const Color(0xFF6366F1), // Indigo
-          secondary: const Color(0xFFEC4899), // Pink
-          surface: const Color(0xFF1E1E2F),
-          background: const Color(0xFF0F0F1A),
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: const Color(0xFFF1F5F9), // Neutral light slate background
+        colorScheme: const ColorScheme.light(
+          primary: Color(0xFF4F46E5), // Indigo primary
+          secondary: Color(0xFF3B82F6), // Blue secondary
+          surface: Colors.white,
+          background: Color(0xFFF1F5F9),
           onPrimary: Colors.white,
           onSecondary: Colors.white,
-          onSurface: Colors.white.withOpacity(0.9),
-          onBackground: Colors.white,
+          onSurface: Color(0xFF1E293B), // Slate 800 dark text
+          onBackground: Color(0xFF1E293B),
         ),
         textTheme: GoogleFonts.plusJakartaSansTextTheme(
-          ThemeData.dark().textTheme,
+          ThemeData.light().textTheme,
         ),
       ),
-      home: const DashboardScreen(),
+      home: const SearchScreen(),
     );
   }
 }

@@ -1,105 +1,80 @@
-class Product {
-  final String sku;
-  final String name;
-  final String category;
-  final int theoreticalStock;
-  final double price;
-  final String imageUrl;
+class FolioItem {
+  final String mspn;
+  final String description;
+  final int theoreticalQty;
+  int physicalQty;
 
-  const Product({
-    required this.sku,
+  FolioItem({
+    required this.mspn,
+    required this.description,
+    required this.theoreticalQty,
+    this.physicalQty = 0,
+  });
+}
+
+class Folio {
+  final String id;
+  final String name;
+  final List<FolioItem> items;
+
+  Folio({
+    required this.id,
     required this.name,
-    required this.category,
-    required this.theoreticalStock,
-    required this.price,
-    this.imageUrl = '',
+    required this.items,
   });
 }
 
 class MockDatabase {
-  static const List<Product> products = [
-    Product(
-      sku: '7501055310014',
-      name: 'Coca-Cola Original 600ml',
-      category: 'Bebidas',
-      theoreticalStock: 24,
-      price: 18.50,
+  static final List<Folio> _folios = [
+    Folio(
+      id: '98000',
+      name: 'Recepción Llantas & Suspensión Celaya',
+      items: [
+        FolioItem(
+          mspn: '123456789012',
+          description: 'Llanta Michelin Primacy 4 205/55R16',
+          theoreticalQty: 8,
+        ),
+        FolioItem(
+          mspn: '987654321098',
+          description: 'Amortiguador Gabriel Delantero Premium',
+          theoreticalQty: 4,
+        ),
+        FolioItem(
+          mspn: '111111111111',
+          description: 'Batería LTH HI-TEC H-24R 12V',
+          theoreticalQty: 6,
+        ),
+      ],
     ),
-    Product(
-      sku: '7501008023451',
-      name: 'Papas Sabritas Sal 110g',
-      category: 'Botanas',
-      theoreticalStock: 15,
-      price: 34.00,
-    ),
-    Product(
-      sku: '7501011115853',
-      name: 'Galletas Chokis Clásicas 84g',
-      category: 'Galletas',
-      theoreticalStock: 18,
-      price: 16.50,
-    ),
-    Product(
-      sku: '7500478018306',
-      name: 'Leche Entera Lala 1L',
-      category: 'Lácteos',
-      theoreticalStock: 12,
-      price: 26.00,
-    ),
-    Product(
-      sku: '7501020542381',
-      name: 'Detergente Ariel Power Liquid 1.2L',
-      category: 'Limpieza',
-      theoreticalStock: 8,
-      price: 65.00,
-    ),
-    Product(
-      sku: '7501031302837',
-      name: 'Aceite Vegetal 1-2-3 1L',
-      category: 'Abarrotes',
-      theoreticalStock: 20,
-      price: 42.00,
-    ),
-    Product(
-      sku: '123456789012',
-      name: 'Llanta Michelin Primacy 4 205/55R16',
-      category: 'Llantas',
-      theoreticalStock: 8,
-      price: 2450.00,
-    ),
-    Product(
-      sku: '987654321098',
-      name: 'Amortiguador Gabriel Delantero',
-      category: 'Suspensión',
-      theoreticalStock: 4,
-      price: 1200.00,
-    ),
-    Product(
-      sku: '111111111111',
-      name: 'Batería LTH HI-TEC H-24R',
-      category: 'Eléctrico',
-      theoreticalStock: 6,
-      price: 2800.00,
-    ),
-    Product(
-      sku: '222222222222',
-      name: 'Balatas Delanteras TRW Cerámica',
-      category: 'Frenos',
-      theoreticalStock: 12,
-      price: 850.00,
-    ),
-    Product(
-      sku: '00000000', // Test SKU for easy simulation in simulator
-      name: 'Producto Demo Premium',
-      category: 'Prueba',
-      theoreticalStock: 10,
-      price: 99.99,
+    Folio(
+      id: '999',
+      name: 'Auditoría de Inventario Rápido',
+      items: [
+        FolioItem(
+          mspn: '222222222222',
+          description: 'Balatas Delanteras TRW Cerámica',
+          theoreticalQty: 12,
+        ),
+        FolioItem(
+          mspn: '7501055310014',
+          description: 'Coca-Cola Original 600ml',
+          theoreticalQty: 24,
+        ),
+        FolioItem(
+          mspn: '00000000',
+          description: 'Producto Demo de Cotejo Rápido',
+          theoreticalQty: 10,
+        ),
+      ],
     ),
   ];
 
-  static Product? findBySku(String sku) {
+  static Folio? findFolioById(String id) {
     try {
-      return products.firstWhere((p) => p.sku == sku);
+      return _folios.firstWhere(
+        (f) => f.id.trim().toUpperCase() == id.trim().toUpperCase(),
+      );
     } catch (_) {
       return null;
     }
